@@ -1,19 +1,44 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+const nodemailer = require('nodemailer');
 
-const {onRequest} = require("firebase-functions/v2/https");
-const logger = require("firebase-functions/logger");
+admin.initializeApp();
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+exports.sendEmail = functions.firestore.document('/result/{documentId}')
+  .onCreate(async (snap, context) => {
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+  // トリガー対象のドキュメントからデータを取得する
+  const resultData = snap.data();
+  const to = resultData.email;
+
+  // メール内容
+  const subject = 'メールのタイトルです。';
+  const message = 'メールの内容です。';
+  const from = process.env.MAIL;
+  const pass = process.env.PASS;
+
+  try {
+    // SMTPトランスポータの作成
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: from,
+        pass: pass
+      }
+    });
+
+    // メールオプションの設定
+    const mailOptions = {
+      from: from,
+      to: to,
+      subject: subject,
+      text: message
+    };
+
+    // メール送信
+    const info = await transporter.sendMail(mailOptions);
+    console.log('メールが送信されました:', info.response);
+  } catch (error) {
+    console.error('メールの送信中にエラーが発生しました:', error);
+  };
+});
