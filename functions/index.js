@@ -1,9 +1,10 @@
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-const nodemailer = require('nodemailer');
+const functions = require('firebase-functions'); //ver: "firebase-functions": "^4.3.1"
+const admin = require('firebase-admin'); //ver: "firebase-admin": "^11.8.0"
+const nodemailer = require('nodemailer'); //ver: "nodemailer": "^6.9.3"
 
 admin.initializeApp();
 
+// Firestoreの対象ドキュメントをonCreateトリガーとする。今回はresultドキュメント配下のすべてを対象とする。
 exports.sendEmail = functions.firestore.document('/result/{documentId}')
   .onCreate(async (snap, context) => {
 
